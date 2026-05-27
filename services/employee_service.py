@@ -1,4 +1,4 @@
-from data.storage import employees_db
+from data.storage import get_connection
 from models.employee import Employee
 from exceptions.custom_exceptions import EmployeeNotFoundException
 from utils.validator import validate_employee
@@ -10,17 +10,40 @@ class EmployeeService:
     def add_employee(emp_id, name, email):
         validate_employee(emp_id, name, email)
 
-        emp = Employee(emp_id, name, email)
-        employees_db[emp_id] = emp
-        return emp
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("INSERT INTO employees VALUES (?, ?, ?)",
+                       (emp_id, name, email))
+
+        conn.commit()
+        conn.close()
+
+        return Employee(emp_id, name, email)
 
     @staticmethod
     def get_employee(emp_id):
-        if emp_id not in employees_db:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM employees WHERE emp_id = ?", (emp_id,))
+        row = cursor.fetchone()
+
+        conn.close()
+
+        if row is None:
             raise EmployeeNotFoundException("Employee not found")
 
-        return employees_db[emp_id]
+        return Employee(*row)
 
     @staticmethod
     def list_employees():
-        return list(employees_db.values())
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM employees")
+        rows = cursor.fetchall()
+
+        conn.close()
+
+        return [Employee(*row) for row in rows]
