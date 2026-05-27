@@ -1,4 +1,4 @@
-from data.storage import tasks_db, employees_db
+from data.storage import get_connection
 from models.task import Task
 from exceptions.custom_exceptions import TaskNotFoundException, EmployeeNotFoundException
 from utils.validator import validate_task
@@ -10,21 +10,45 @@ class TaskService:
     def create_task(task_id, title, emp_id):
         validate_task(task_id, title)
 
-        if emp_id not in employees_db:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Check employee exists
+        cursor.execute("SELECT * FROM employees WHERE emp_id = ?", (emp_id,))
+        if cursor.fetchone() is None:
             raise EmployeeNotFoundException("Employee not found")
 
-        task = Task(task_id, title, emp_id)
-        tasks_db[task_id] = task
-        return task
+        cursor.execute("INSERT INTO tasks VALUES (?, ?, ?, ?)",
+                       (task_id, title, emp_id, "Pending"))
+
+        conn.commit()
+        conn.close()
+
+        return Task(task_id, title, emp_id)
 
     @staticmethod
     def update_task_status(task_id, status):
-        if task_id not in tasks_db:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM tasks WHERE task_id = ?", (task_id,))
+        if cursor.fetchone() is None:
             raise TaskNotFoundException("Task not found")
 
-        tasks_db[task_id].status = status
-        return tasks_db[task_id]
+        cursor.execute("UPDATE tasks SET status = ? WHERE task_id = ?",
+                       (status, task_id))
+
+        conn.commit()
+        conn.close()
 
     @staticmethod
     def list_tasks():
-        return list(tasks_db.values())
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM tasks")
+        rows = cursor.fetchall()
+
+        conn.close()
+
+        return [Task(*row) for row in rows]
