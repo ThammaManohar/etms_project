@@ -2,14 +2,20 @@ import sqlite3
 
 
 def get_connection():
-    conn = sqlite3.connect("etms.db")
-    return conn
+    """
+    Create and return a database connection
+    """
+    return sqlite3.connect("etms.db")
 
 
 def create_tables():
+    """
+    Create employees and tasks tables if they don't exist
+    """
     conn = get_connection()
     cursor = conn.cursor()
 
+    # Create employees table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS employees (
         emp_id INTEGER PRIMARY KEY,
@@ -18,6 +24,7 @@ def create_tables():
     )
     """)
 
+    # Create tasks table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS tasks (
         task_id INTEGER PRIMARY KEY,
@@ -27,6 +34,20 @@ def create_tables():
         FOREIGN KEY (assigned_to) REFERENCES employees(emp_id)
     )
     """)
+
+    conn.commit()
+    conn.close()
+
+
+def reset_tables():
+    """
+    Delete all data from tables (for fresh testing)
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM tasks")
+    cursor.execute("DELETE FROM employees")
 
     conn.commit()
     conn.close()

@@ -1,9 +1,12 @@
+from data.storage import create_tables, reset_tables
 from services.employee_service import EmployeeService
 from services.task_service import TaskService
 
 
 def main():
     #  Add Employees
+    create_tables()
+    reset_tables()
     EmployeeService.add_employee(1, "Manohar", "manohar@gmail.com")
     EmployeeService.add_employee(2, "Rahul", "rahul@gmail.com")
     EmployeeService.add_employee(3, "Anita", "anita@gmail.com")
