@@ -52,3 +52,21 @@ class TaskService:
         conn.close()
 
         return [Task(*row) for row in rows]
+    
+    @staticmethod
+    def list_tasks_with_employee():
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        SELECT t.task_id, t.title, t.status, e.name
+        FROM tasks t
+        JOIN employees e
+        ON t.assigned_to = e.emp_id
+        """)
+
+        rows = cursor.fetchall()
+
+        conn.close()
+
+        return rows

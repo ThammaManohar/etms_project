@@ -1,12 +1,14 @@
-from data.storage import create_tables, reset_tables
 from services.employee_service import EmployeeService
 from services.task_service import TaskService
+from data.storage import create_tables, reset_tables
 
 
 def main():
-    #  Add Employees
+    #  Initialize DB and reset data
     create_tables()
     reset_tables()
+
+    #  Add Employees
     EmployeeService.add_employee(1, "Manohar", "manohar@gmail.com")
     EmployeeService.add_employee(2, "Rahul", "rahul@gmail.com")
     EmployeeService.add_employee(3, "Anita", "anita@gmail.com")
@@ -35,9 +37,12 @@ def main():
     TaskService.update_task_status(103, "In Progress")
     TaskService.update_task_status(106, "Completed")
 
-    print("\n=== Tasks (After Update) ===")
-    for task in TaskService.list_tasks():
-        print(task)
+    print("\n=== Tasks (After Update - With Employee Names) ===")
+
+    #  Using JOIN
+    for row in TaskService.list_tasks_with_employee():
+        task_id, title, status, name = row
+        print(f"{task_id} - {title} [{status}] Assigned to: {name}")
 
 
 if __name__ == "__main__":
